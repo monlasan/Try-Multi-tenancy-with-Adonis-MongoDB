@@ -71,7 +71,6 @@ export default class TenantsController {
     const { org, admin } = request.body()
 
     const tenant = await createTenant(org)
-    // TODO: Switch database connection to the new tenant
     const organization = await createOrganization(tenant.name)
     const superAdminUser = await createSuperAdminUser(tenant.name, admin, organization._id)
     await assignSuperAdminToOrganization(tenant.name, organization._id, superAdminUser._id)
