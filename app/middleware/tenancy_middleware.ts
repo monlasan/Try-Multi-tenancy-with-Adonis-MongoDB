@@ -9,7 +9,7 @@ export default class TenancyMiddleware {
     const tenant = await Tenant.exists({ name: ctx.subdomains.tenant })
     if (!tenant) throw new Error('Tenant not found')
 
-    console.log('🟣 TENANCY MIDDLEWARE : ', ctx.subdomains.tenant)
+    // console.log('🟣 TENANCY MIDDLEWARE : ', ctx.subdomains.tenant)
     /**
      * Call next method in the pipeline and return its output
      */

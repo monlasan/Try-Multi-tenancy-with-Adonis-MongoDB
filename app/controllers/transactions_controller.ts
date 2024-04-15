@@ -13,23 +13,35 @@ export default class TransactionsController {
   }
   async store({ request, subdomains }: HttpContext) {
     const Transaction = getModelByTenant(subdomains.tenant, 'transaction', TransactionSchema)
-    const User = getModelByTenant(subdomains.tenant, 'user', UserSchema)
     const Customer = getModelByTenant(subdomains.tenant, 'customer', CustomerSchema)
+    const User = getModelByTenant(subdomains.tenant, 'user', UserSchema)
     const Organization = getModelByTenant(subdomains.tenant, 'organization', OrganizationSchema)
     // TODO: Wrap all the operations in a mongoose transaction
-    const { amount, customerId, organizationId, initiatedById } = request.body()
+    const { amount, customerInfos, organizationId, initiatedById } = request.body()
     // TODO: Add proper validation
+
     const operator = await User.findById(initiatedById)
     if (!operator) {
       throw new Error('Operator not found')
     }
-    const customer = await Customer.findById(customerId)
-    if (!customer) {
-      throw new Error('Customer not found')
-    }
+
     const organization = await Organization.findById(organizationId)
     if (!organization) {
       throw new Error('Organization not found')
+    }
+
+    let customer = null
+    // Check if
+    if (!organization.customers.includes(customerInfos._id)) {
+      // ? If customer is not found for in the tenant dabatase,
+      // ? we create a customer for it based on the infos of the customer (card) from landlord/main database.
+      // TODO: Once the official customer schema is elaborated, we can should refactor the customer creation dataset.
+      customer = await Customer.create({ _id: customerInfos._id, name: customerInfos.name })
+      console.log('CUSTOMER CREATED')
+      organization.customers.push(customer._id)
+    } else {
+      console.log('CUSTOMER REUSED')
+      customer = await Customer.findById(customerInfos._id)
     }
 
     const newTransaction = await Transaction.create({
@@ -40,9 +52,7 @@ export default class TransactionsController {
     })
 
     // Update organization reference
-    if (!organization.customers.includes(customerId)) {
-      organization.customers.push(customerId)
-    }
+
     organization.transactions.push(newTransaction._id)
     organization.save()
 

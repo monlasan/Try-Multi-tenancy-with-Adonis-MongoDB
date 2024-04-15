@@ -21,12 +21,13 @@ import mongoose from 'mongoose'
 
 // export default connectDB
 
+type Models = 'tenant' | 'user' | 'organization' | 'customer' | 'transaction'
 export let mongodb: mongoose.Connection | undefined = undefined
 
 /**
  * Creating New MongoDb Connection obect by Switching DB
  */
-const getTenantDB = (tenantId: string, modelName: string, schema: mongoose.Schema) => {
+const getTenantDB = (tenantId: string, modelName: Models, schema: mongoose.Schema) => {
   const dbName = tenantId === 'landlord' ? 'landlord' : `tenant_${tenantId}`
   if (mongodb) {
     // useDb will return new connection
@@ -44,9 +45,9 @@ const getTenantDB = (tenantId: string, modelName: string, schema: mongoose.Schem
 /**
  * Return Model as per tenant
  */
-export const getModelByTenant = (tenantId: string, modelName: string, schema: mongoose.Schema) => {
+export const getModelByTenant = (tenantId: string, modelName: Models, schema: mongoose.Schema) => {
   // console.log(`getModelByTenant tenantId : ${tenantId}.`);
-  const tenantDb = getTenantDB(tenantId, modelName.toLocaleLowerCase(), schema)
+  const tenantDb = getTenantDB(tenantId, modelName, schema)
   return tenantDb.model(modelName.toLocaleLowerCase())
 }
 

@@ -13,15 +13,15 @@ export default class CustomersController {
     const customer = await Customer.findById(params.id)
     return { customer }
   }
-  async store({ request, subdomains }: HttpContext) {
+  async store({ request }: HttpContext) {
     const { name } = request.body()
-    const Customer = getModelByTenant(subdomains.tenant, 'customer', CustomerSchema)
+    const Customer = getModelByTenant('landlord', 'customer', CustomerSchema)
     const customer = await Customer.create({ name })
     return customer
   }
-  async bulk({ request, subdomains }: HttpContext) {
+  async bulk({ request }: HttpContext) {
     const { name } = request.body()
-    const Customer = getModelByTenant(subdomains.tenant, 'customer', CustomerSchema)
+    const Customer = getModelByTenant('landlord', 'customer', CustomerSchema)
     const customer = await Customer.create({ name })
     return customer
   }
