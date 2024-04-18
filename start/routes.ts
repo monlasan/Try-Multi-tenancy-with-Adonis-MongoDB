@@ -14,7 +14,7 @@ router
       })
       // [ANON] Tenants
       router.get('tenants', [TenantsController, 'index'])
-      router.post('tenants', [TenantsController, 'store'])
+      router.post('tenants', [TenantsController, 'store']) // AUTH FOR TENANTS
       // [ANON] Customers
       router.post('customers', [CustomersController, 'store'])
       router.post('customers/bulk', [CustomersController, 'bulk'])
