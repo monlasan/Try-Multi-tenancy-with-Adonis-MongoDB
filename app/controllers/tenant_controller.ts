@@ -49,6 +49,7 @@ const createSuperAdminUser = async (tenant: string, infos: any, organizationId: 
       email_verification_token: '',
       email_verification_expiry: 0,
       organization: '',
+      role: 'ADMIN',
     }
     const { hashedToken, tokenExpiry } = generateTemporaryToken()
 
