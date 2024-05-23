@@ -27,7 +27,7 @@ const generateAccessAndRefreshTokens = async (tenant: string, userId: any) => {
 
     return { accessToken, refreshToken }
   } catch (error) {
-    throw new Error('Something went wrong while generating the access token')
+    throw new Error('Something went wrong while generating the access token!')
   }
 }
 
@@ -68,7 +68,6 @@ export default class AuthController {
       .cookie('accessToken', accessToken)
       .cookie('refreshToken', refreshToken)
       .status(200)
-      .send({ user, accessToken, refreshToken })
-    return { message: 'Please let me in ' + subdomains.tenant }
+      .send({ message: '✅ Users authenticated successfully', user, accessToken, refreshToken })
   }
 }

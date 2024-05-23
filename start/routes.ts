@@ -1,11 +1,11 @@
-import CustomersController from '#controllers/customers_controller'
-import OrganizationsController from '#controllers/organizations_controller'
-import TransactionsController from '#controllers/transactions_controller'
-import UsersController from '#controllers/users_controller'
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
-import TenantsController from '#controllers/tenant_controller'
-import AuthController from '#controllers/auth_controller'
+const CustomersController = () => import('#controllers/customers_controller')
+const OrganizationsController = () => import('#controllers/organizations_controller')
+const TransactionsController = () => import('#controllers/transactions_controller')
+const UsersController = () => import('#controllers/users_controller')
+const AuthController = () => import('#controllers/auth_controller')
+const TenantsController = () => import('#controllers/tenant_controller')
 
 router
   .group(() => {
