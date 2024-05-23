@@ -1,3 +1,18 @@
+// 🟠 TODO: Validate data
+// 🟠 TODO: handle errors properly
+// 🟠 TODO: Wrap operations in a transaction with mongoose
+// 🟢 Check if tenant already exist
+// 🟢 Create tenant
+// 🟢 Create organization
+// 🟢 Hash password
+// 🟢 Charge organization super admin object
+// 🟢 Generate temporary token
+// 🟢 Assign generated token to super admin
+// 🟢 Create organization super admin
+// 🟠 TODO: Send email to user
+// 🟢 Verify organization super admin creation
+// 🟢 Send back response with basic infos and access token
+
 import { getModelByTenant } from '#database/index'
 import { OrganizationSchema } from '#database/schemas/organization_schema'
 import { TenantSchema } from '#database/schemas/tenant_schema'
@@ -38,8 +53,11 @@ const createOrganization = async (tenantName: string) => {
 const createSuperAdminUser = async (tenant: string, infos: any, organizationId: any) => {
   try {
     const User = getModelByTenant(tenant, 'user', UserSchema)
-    const passwordHash = await hash.make('user_password')
 
+    // Generate password hash
+    const passwordHash = await hash.make(infos.password)
+
+    // Set up super admin object
     let SUPER_ADMIN = {
       full_name: infos.last_name + ' ' + infos.first_name,
       email: infos.email,
@@ -51,7 +69,13 @@ const createSuperAdminUser = async (tenant: string, infos: any, organizationId: 
       organization: '',
       role: 'ADMIN',
     }
-    const { hashedToken, tokenExpiry } = generateTemporaryToken()
+
+    /**
+     * unHashedToken: unHashed token is something we will send to the user's mail
+     * hashedToken: we will keep record of hashedToken to validate the unHashedToken in verify email controller
+     * tokenExpiry: Expiry to be checked before validating the incoming token
+     */
+    const { unHashedToken, hashedToken, tokenExpiry } = generateTemporaryToken()
 
     SUPER_ADMIN.email_verification_token = hashedToken
     SUPER_ADMIN.email_verification_expiry = tokenExpiry
@@ -74,8 +98,8 @@ const createSuperAdminUser = async (tenant: string, infos: any, organizationId: 
 }
 const assignSuperAdminToOrganization = async (
   tenantName: string,
-  organizationId: any,
-  superAdminUserId: any
+  organizationId: string,
+  superAdminUserId: string
 ) => {
   const Organization = getModelByTenant(tenantName, 'organization', OrganizationSchema)
 
@@ -84,7 +108,7 @@ const assignSuperAdminToOrganization = async (
     if (!organization) {
       throw new Error('Organization not found')
     }
-
+    // We add the super admin to the organization members
     organization.members.push(superAdminUserId)
     await organization.save()
     return organization
@@ -97,19 +121,6 @@ const assignSuperAdminToOrganization = async (
 export default class TenantsController {
   async store({ request }: HttpContext) {
     const { org, admin } = request.body()
-
-    // 🟢 Validate data
-    // 🟢 Check if tenant already exist
-    // 🟢 Create tenant
-    // 🟢 Create organization
-    // 🟢 Hash password
-    // 🟢 Charge organization super admin object
-    // 🟢 Generate temporary token
-    // 🟢 Assign generated token to super admin
-    // 🟢 Create organization super admin
-    // 🟠 Send email to user
-    // 🟢 Verify organization super admin creation
-    // 🟢 Send back response with basic infos and access token
 
     const tenant = await createTenant(org)
     const organization = await createOrganization(tenant.name)

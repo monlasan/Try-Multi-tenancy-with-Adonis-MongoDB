@@ -28,4 +28,9 @@ export default class UsersController {
 
     return user
   }
+  async login({ params, subdomains }: HttpContext) {
+    const User = getModelByTenant(subdomains.tenant, 'user', UserSchema)
+    const user = await User.findById(params.id)
+    return { user }
+  }
 }

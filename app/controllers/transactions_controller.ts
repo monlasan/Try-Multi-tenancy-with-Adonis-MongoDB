@@ -20,26 +20,28 @@ export default class TransactionsController {
     const { amount, customerInfos, organizationId, initiatedById } = request.body()
     // TODO: Add proper validation
 
+    // Find the organization member who initiated the transaction
     const operator = await User.findById(initiatedById)
     if (!operator) {
       throw new Error('Operator not found')
     }
 
+    // Get the organization
     const organization = await Organization.findById(organizationId)
     if (!organization) {
       throw new Error('Organization not found')
     }
 
     let customer = null
-    // Check if
     if (!organization.customers.includes(customerInfos._id)) {
-      // ? If customer is not found for in the tenant dabatase,
-      // ? we create a customer for it based on the infos of the customer (card) from landlord/main database.
+      // ? If customer is not found in the tenant dabatase,
+      // ? we create add the customer from landlord/main database.
       // TODO: Once the official customer schema is elaborated, we can should refactor the customer creation dataset.
       customer = await Customer.create({ _id: customerInfos._id, name: customerInfos.name })
-      console.log('CUSTOMER CREATED')
+      console.log('CUSTOMER CREATED IN TENANT DATABASE')
       organization.customers.push(customer._id)
     } else {
+      // We just reuse the existing customer infos present in tenant database
       console.log('CUSTOMER REUSED')
       customer = await Customer.findById(customerInfos._id)
     }
@@ -52,7 +54,6 @@ export default class TransactionsController {
     })
 
     // Update organization reference
-
     organization.transactions.push(newTransaction._id)
     organization.save()
 

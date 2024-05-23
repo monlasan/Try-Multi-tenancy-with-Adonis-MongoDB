@@ -5,6 +5,7 @@ import UsersController from '#controllers/users_controller'
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 import TenantsController from '#controllers/tenant_controller'
+import AuthController from '#controllers/auth_controller'
 
 router
   .group(() => {
@@ -14,7 +15,7 @@ router
       })
       // [ANON] Tenants
       router.get('tenants', [TenantsController, 'index'])
-      router.post('tenants', [TenantsController, 'store']) // AUTH FOR TENANTS
+      router.post('tenants/register', [TenantsController, 'store']) // AUTH FOR TENANTS
       // [ANON] Customers
       router.post('customers', [CustomersController, 'store'])
       router.post('customers/bulk', [CustomersController, 'bulk'])
@@ -22,6 +23,18 @@ router
 
     router
       .group(() => {
+        // AUTH
+        router.post('login', [AuthController, 'login'])
+
+        // [AUTH ROUTES GROUP]
+        router
+          .group(() => {
+            router.post('tokenVerify', (ctx) => {
+              return { message: '🟢 Everything ok!', user: ctx.request.header('user') }
+            })
+          })
+          .use(middleware.auth())
+
         // Organizations (tenants)
         router.get('organizations', [OrganizationsController, 'index'])
         router.get('organizations/:id', [OrganizationsController, 'show'])
