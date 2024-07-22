@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { normalizeOrganizationName } from '../lib/utils.js'
 
 // import mongoose, { Mongoose } from 'mongoose'
 // export let db: Mongoose | undefined = undefined
@@ -28,12 +29,14 @@ export let mongodb: mongoose.Connection | undefined = undefined
  * Creating New MongoDb Connection obect by Switching DB
  */
 const getTenantDB = (tenantId: string, modelName: Models, schema: mongoose.Schema) => {
-  const dbName = tenantId === 'landlord' ? 'landlord' : `tenant_${tenantId}`
+  const dbName =
+    tenantId === 'landlord' ? 'landlord' : `tenant_${normalizeOrganizationName(tenantId)}`
   if (mongodb) {
     // useDb will return new connection
     const db = mongodb.useDb(dbName, { useCache: true })
     // console.log(`⚙ Database switched to ${dbName}`)
     db.model(modelName, schema)
+    // db.models[modelName] || db.model(modelName, schema)
     return db
   }
   // return throwError(500, codes.CODE_8004);
@@ -47,8 +50,9 @@ const getTenantDB = (tenantId: string, modelName: Models, schema: mongoose.Schem
  */
 export const getModelByTenant = (tenantId: string, modelName: Models, schema: mongoose.Schema) => {
   // console.log(`getModelByTenant tenantId : ${tenantId}.`);
+  const modelLowercased = modelName.toLocaleLowerCase()
   const tenantDb = getTenantDB(tenantId, modelName, schema)
-  return tenantDb.model(modelName.toLocaleLowerCase())
+  return tenantDb.models[modelLowercased] || tenantDb.model(modelLowercased)
 }
 
 const connect = () => mongoose.createConnection('mongodb://localhost:27017')

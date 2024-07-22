@@ -21,17 +21,18 @@ import type { HttpContext } from '@adonisjs/core/http'
 import hash from '@adonisjs/core/services/hash'
 import { generateTemporaryToken } from '../utils/helpers.js'
 
-const createTenant = async (org: any) => {
+const createTenant = async (org_name: string, tenant_id: string) => {
   // TODO: Validate and sanitize tenant name
   const Tenant = getModelByTenant('landlord', 'tenant', TenantSchema)
   try {
-    const existingTenant = await Tenant.findOne({ name: org.name })
+    const existingTenant = await Tenant.findOne({ database_name: tenant_id })
     if (existingTenant) {
       throw new Error('Tenant already exists')
     }
+    console.log('🚀 CREATING TENANT', Tenant)
     const tenant = await Tenant.create({
-      name: org.name,
-      database_name: org.name,
+      name: org_name,
+      database_name: tenant_id,
     })
     return tenant
   } catch (error) {
@@ -42,7 +43,18 @@ const createTenant = async (org: any) => {
 const createOrganization = async (tenantName: string) => {
   const Organization = getModelByTenant(tenantName, 'organization', OrganizationSchema)
   try {
-    const organization = new Organization({ name: tenantName })
+    const organization = new Organization({
+      name: tenantName,
+      programs: [
+        {
+          name: 'BASE_PROGRAM',
+          active: true,
+          basic_program: {
+            added_points: 10,
+          },
+        },
+      ],
+    })
     await organization.save()
     return organization
   } catch (error) {
@@ -59,7 +71,7 @@ const createSuperAdminUser = async (tenant: string, infos: any, organizationId: 
 
     // Set up super admin object
     let SUPER_ADMIN = {
-      full_name: infos.last_name + ' ' + infos.first_name,
+      full_name: infos.lastname + ' ' + infos.firstname,
       email: infos.email,
       phone_number: infos.phone_number,
       password: passwordHash,
@@ -120,9 +132,17 @@ const assignSuperAdminToOrganization = async (
 
 export default class TenantsController {
   async store({ request }: HttpContext) {
-    const { org, admin } = request.body()
-
-    const tenant = await createTenant(org)
+    const { organization_name, tenant_id, firstname, lastname, phone_number, email, password } =
+      request.body()
+    const admin = {
+      organization_name,
+      firstname,
+      lastname,
+      phone_number,
+      email,
+      password,
+    }
+    const tenant = await createTenant(organization_name, tenant_id)
     const organization = await createOrganization(tenant.name)
     const superAdminUser = await createSuperAdminUser(tenant.name, admin, organization._id)
     await assignSuperAdminToOrganization(tenant.name, organization._id, superAdminUser._id)
@@ -139,8 +159,9 @@ export default class TenantsController {
     const tenants = await Tenant.find({})
     return tenants
   }
-  // async show({ params }: HttpContext) {
-  //   const tenant = await Tenant.findById(params.id)
-  //   return { tenant }
-  // }
+  async show({ params }: HttpContext) {
+    const Tenant = getModelByTenant('landlord', 'tenant', TenantSchema)
+    const tenant = await Tenant.findOne({ database_name: params.tenant })
+    return { tenant }
+  }
 }

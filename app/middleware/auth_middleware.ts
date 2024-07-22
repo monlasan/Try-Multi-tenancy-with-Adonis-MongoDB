@@ -4,16 +4,20 @@ import type { NextFn } from '@adonisjs/core/types/http'
 import env from '#start/env'
 import { getModelByTenant } from '#database/index'
 import { UserSchema } from '#database/schemas/user_schema'
+import UnAuthorizedException from '#exceptions/un_authorized_exception'
+import { currentTenant } from '../../lib/utils.js'
 
 export default class AuthMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
-    const User = getModelByTenant(ctx.subdomains.tenant, 'user', UserSchema)
+    const tenant = currentTenant(ctx.request)
+    const User = getModelByTenant(tenant, 'user', UserSchema)
+    // const User = getModelByTenant(ctx.subdomains.tenant, 'user', UserSchema)
     const token =
       ctx.request.cookie('accessToken') ||
       ctx.request.header('authorization')?.replace('Bearer ', '')
 
     if (!token) {
-      throw new Error('No token, Unauthorized request')
+      throw new UnAuthorizedException('You are not authorized')
     }
 
     try {
@@ -21,11 +25,11 @@ export default class AuthMiddleware {
       const user = await User.findById(decodedToken.id)
 
       if (!user) {
-        throw new Error('Unauthorized request 000 user not found')
+        throw new UnAuthorizedException('You are not authorized')
       }
       ctx.request.request.headers['user'] = user
     } catch (err) {
-      throw new Error(err || 'Unauthorized request')
+      throw new UnAuthorizedException('You are not authorized')
     }
 
     /**

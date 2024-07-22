@@ -20,11 +20,11 @@ export const UserSchema = new mongoose.Schema(
     phone_number: {
       type: String,
     },
-    role: { type: String, enum: ['ADMIN', 'COMMERCIAL', 'COLLABORATOR'], default: 'COLLABORATOR' },
+    role: { type: String, enum: ['ADMIN', 'MANAGER', 'CASHIER'], default: 'CASHIER' },
     avatar_url: { type: String, default: 'https://via.placeholder.com/200x200.png' },
     login_type: { type: String, default: 'EMAIL_PASSWORD' },
     // --
-    organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+    tenant_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
     transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
     // --
     is_email_verified: { type: Boolean, default: false },

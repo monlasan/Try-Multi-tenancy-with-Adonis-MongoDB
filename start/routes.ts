@@ -10,11 +10,17 @@ const TenantsController = () => import('#controllers/tenant_controller')
 router
   .group(() => {
     router.group(() => {
-      router.get('/', async () => {
+      router.get('/', async (ctx) => {
+        console.log('============================================================')
+        console.log('🟢 ctx.request.host', ctx.request.host())
+        console.log('🟢 ctx.request.hostname', ctx.request.hostname())
+        console.log('============================================================')
         return '🟢 Everything ok!'
       })
+
       // [ANON] Tenants
       router.get('tenants', [TenantsController, 'index'])
+      router.get('tenants/:tenant', [TenantsController, 'show'])
       router.post('tenants/register', [TenantsController, 'store']) // AUTH FOR TENANTS
       // [ANON] Customers
       router.post('customers', [CustomersController, 'store'])
@@ -23,10 +29,10 @@ router
 
     router
       .group(() => {
-        // AUTH
-        router.post('login', [AuthController, 'login'])
+        // [ANON AUTH]
+        router.post('tenants/login', [AuthController, 'login'])
 
-        // [AUTH ROUTES GROUP]
+        // [🔒 AUTH ROUTES GROUP]
         router
           .group(() => {
             router.post('tokenVerify', (ctx) => {
@@ -49,7 +55,6 @@ router
         router.get('transactions', [TransactionsController, 'index'])
         router.post('transactions', [TransactionsController, 'store'])
       })
-      .domain(':tenant.example.com')
       .use(middleware.tenanted())
   })
   .prefix('api/v1')
