@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-export const UserSchema = new mongoose.Schema(
+export const MemberSchema = new mongoose.Schema(
   {
     full_name: {
       type: String,
@@ -24,7 +24,8 @@ export const UserSchema = new mongoose.Schema(
     avatar_url: { type: String, default: 'https://via.placeholder.com/200x200.png' },
     login_type: { type: String, default: 'EMAIL_PASSWORD' },
     // --
-    tenant_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
+    organization_name: String,
+    tenant_id: String,
     transactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
     // --
     is_email_verified: { type: Boolean, default: false },

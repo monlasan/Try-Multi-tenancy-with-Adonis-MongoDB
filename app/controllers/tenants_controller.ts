@@ -9,14 +9,13 @@
 // 🟢 Generate temporary token
 // 🟢 Assign generated token to super admin
 // 🟢 Create organization super admin
-// 🟠 TODO: Send email to user
+// 🟠 TODO: Send email to member
 // 🟢 Verify organization super admin creation
 // 🟢 Send back response with basic infos and access token
 
 import { getModelByTenant } from '#database/index'
-import { OrganizationSchema } from '#database/schemas/organization_schema'
 import { TenantSchema } from '#database/schemas/tenant_schema'
-import { UserSchema } from '#database/schemas/user_schema'
+import { MemberSchema } from '#database/schemas/member_schema'
 import type { HttpContext } from '@adonisjs/core/http'
 import hash from '@adonisjs/core/services/hash'
 import { generateTemporaryToken } from '../utils/helpers.js'
@@ -29,22 +28,9 @@ const createTenant = async (org_name: string, tenant_id: string) => {
     if (existingTenant) {
       throw new Error('Tenant already exists')
     }
-    console.log('🚀 CREATING TENANT', Tenant)
     const tenant = await Tenant.create({
       name: org_name,
       database_name: tenant_id,
-    })
-    return tenant
-  } catch (error) {
-    console.error('Error creating organization:', error)
-    throw error
-  }
-}
-const createOrganization = async (tenantName: string) => {
-  const Organization = getModelByTenant(tenantName, 'organization', OrganizationSchema)
-  try {
-    const organization = new Organization({
-      name: tenantName,
       programs: [
         {
           name: 'BASE_PROGRAM',
@@ -55,35 +41,57 @@ const createOrganization = async (tenantName: string) => {
         },
       ],
     })
-    await organization.save()
-    return organization
+    return tenant
   } catch (error) {
-    console.error('Error creating organization:', error)
+    console.error('Error creating tenant', error)
     throw error
   }
 }
-const createSuperAdminUser = async (tenant: string, infos: any, organizationId: any) => {
+// const createOrganization = async (tenantName: string) => {
+//   const Organization = getModelByTenant(tenantName, 'organization', OrganizationSchema)
+//   try {
+//     const organization = new Organization({
+//       name: tenantName,
+//       programs: [
+//         {
+//           name: 'BASE_PROGRAM',
+//           active: true,
+//           basic_program: {
+//             added_points: 10,
+//           },
+//         },
+//       ],
+//     })
+//     await organization.save()
+//     return organization
+//   } catch (error) {
+//     console.error('Error creating organization:', error)
+//     throw error
+//   }
+// }
+const createSuperAdminMember = async (tenant: string, infos: any, tenant_id: string) => {
   try {
-    const User = getModelByTenant(tenant, 'user', UserSchema)
+    const Member = getModelByTenant(tenant, 'member', MemberSchema)
 
     // Generate password hash
     const passwordHash = await hash.make(infos.password)
 
     // Set up super admin object
     let SUPER_ADMIN = {
-      full_name: infos.lastname + ' ' + infos.firstname,
+      full_name: infos.last_name + ' ' + infos.first_name,
       email: infos.email,
       phone_number: infos.phone_number,
       password: passwordHash,
       is_email_verified: false,
       email_verification_token: '',
       email_verification_expiry: 0,
-      organization: '',
+      organization_name: infos.organization_name,
+      tenant_id: tenant_id,
       role: 'ADMIN',
     }
 
     /**
-     * unHashedToken: unHashed token is something we will send to the user's mail
+     * unHashedToken: unHashed token is something we will send to the member's mail
      * hashedToken: we will keep record of hashedToken to validate the unHashedToken in verify email controller
      * tokenExpiry: Expiry to be checked before validating the incoming token
      */
@@ -91,67 +99,61 @@ const createSuperAdminUser = async (tenant: string, infos: any, organizationId: 
 
     SUPER_ADMIN.email_verification_token = hashedToken
     SUPER_ADMIN.email_verification_expiry = tokenExpiry
-    SUPER_ADMIN.organization = organizationId
 
-    const user = new User(SUPER_ADMIN)
-    await user.save()
+    const member = new Member(SUPER_ADMIN)
+    await member.save()
 
-    // TODO: 🟠 Send email to user here
+    // TODO: 🟠 Send email to member here
 
-    if (!user) {
-      throw new Error('User not created')
+    if (!member) {
+      throw new Error('Member not created')
     }
 
-    return user
+    return member
   } catch (error) {
-    console.error('Error creating super admin user:', error)
+    console.error('Error creating super admin member:', error)
     throw error
   }
 }
-const assignSuperAdminToOrganization = async (
-  tenantName: string,
-  organizationId: string,
-  superAdminUserId: string
-) => {
-  const Organization = getModelByTenant(tenantName, 'organization', OrganizationSchema)
+const assignSuperAdminToTenant = async (tenantData: any, superAdminMemberId: string) => {
+  const Tenant = getModelByTenant('landlord', 'tenant', TenantSchema)
 
   try {
-    const organization = await Organization.findById(organizationId)
-    if (!organization) {
-      throw new Error('Organization not found')
+    const tenant = await Tenant.findById(tenantData._id)
+    if (!tenant) {
+      throw new Error('Tenant not found')
     }
-    // We add the super admin to the organization members
-    organization.members.push(superAdminUserId)
-    await organization.save()
-    return organization
+    // We add the super admin to the tenant organization members
+    tenant.members.push(superAdminMemberId)
+    await tenant.save()
+    return tenant
   } catch (error) {
-    console.error('Error assigning super admin to organization:', error)
+    console.error('Error assigning super admin to tenant:', error)
     throw error
   }
 }
 
 export default class TenantsController {
   async store({ request }: HttpContext) {
-    const { organization_name, tenant_id, firstname, lastname, phone_number, email, password } =
+    const { organization_name, tenant_id, first_name, last_name, phone_number, email, password } =
       request.body()
     const admin = {
       organization_name,
-      firstname,
-      lastname,
+      first_name,
+      last_name,
       phone_number,
       email,
       password,
     }
     const tenant = await createTenant(organization_name, tenant_id)
-    const organization = await createOrganization(tenant.name)
-    const superAdminUser = await createSuperAdminUser(tenant.name, admin, organization._id)
-    await assignSuperAdminToOrganization(tenant.name, organization._id, superAdminUser._id)
+    const superAdminMember = await createSuperAdminMember(tenant.name, admin, tenant_id)
+    const organization = await assignSuperAdminToTenant(tenant, superAdminMember._id)
 
     return {
       message:
-        'Successfully created organization. Users registered successfully and verification email has been sent on your email.',
-      organization,
-      superAdminUser,
+        'Successfully created organization. Members registered successfully and verification email has been sent on your email.',
+      organizationId: organization._id,
+      adminId: superAdminMember._id,
     }
   }
   async index({}: HttpContext) {

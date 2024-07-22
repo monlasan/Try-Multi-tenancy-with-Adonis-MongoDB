@@ -22,7 +22,7 @@ import { normalizeOrganizationName } from '../lib/utils.js'
 
 // export default connectDB
 
-type Models = 'tenant' | 'user' | 'organization' | 'customer' | 'transaction'
+type Models = 'tenant' | 'member' | 'customer' | 'transaction'
 export let mongodb: mongoose.Connection | undefined = undefined
 
 /**

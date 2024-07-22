@@ -1,11 +1,10 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 const CustomersController = () => import('#controllers/customers_controller')
-const OrganizationsController = () => import('#controllers/organizations_controller')
 const TransactionsController = () => import('#controllers/transactions_controller')
-const UsersController = () => import('#controllers/users_controller')
-const AuthController = () => import('#controllers/auth_controller')
-const TenantsController = () => import('#controllers/tenant_controller')
+const MembersController = () => import('#controllers/members_controller')
+const AuthController = () => import('#controllers/auths_controller')
+const TenantsController = () => import('#controllers/tenants_controller')
 
 router
   .group(() => {
@@ -18,18 +17,22 @@ router
         return '🟢 Everything ok!'
       })
 
-      // [ANON] Tenants
+      // Tenants
       router.get('tenants', [TenantsController, 'index'])
-      router.get('tenants/:tenant', [TenantsController, 'show'])
       router.post('tenants/register', [TenantsController, 'store']) // AUTH FOR TENANTS
-      // [ANON] Customers
+
+      // ? I think we need customer related auth to specific informations
+      router.get('tenants/:tenant', [TenantsController, 'show'])
+
+      // All Customers
+      router.get('customers', [CustomersController, 'index'])
       router.post('customers', [CustomersController, 'store'])
       router.post('customers/bulk', [CustomersController, 'bulk'])
     })
 
     router
       .group(() => {
-        // [ANON AUTH]
+        // SIGN IN
         router.post('tenants/login', [AuthController, 'login'])
 
         // [🔒 AUTH ROUTES GROUP]
@@ -41,19 +44,16 @@ router
           })
           .use(middleware.auth())
 
-        // Organizations (tenants)
-        router.get('organizations', [OrganizationsController, 'index'])
-        router.get('organizations/:id', [OrganizationsController, 'show'])
-        // Users (Members)
-        router.get('members', [UsersController, 'index'])
-        router.post('members', [UsersController, 'store'])
-        router.get('members/:id', [UsersController, 'show'])
-        // Users (Customers)
-        router.get('customers', [CustomersController, 'index'])
-        router.get('customers/:id', [CustomersController, 'show'])
+        // Members
+        router.get('tenant/members', [MembersController, 'index'])
+        router.post('tenant/members', [MembersController, 'store'])
+        router.get('tenant/members/:id', [MembersController, 'show'])
+        // Customers
+        router.get('tenant/customers', [CustomersController, 'index_tenant'])
+        router.get('tenant/customers/:id', [CustomersController, 'show_tenant'])
         // Transactions
-        router.get('transactions', [TransactionsController, 'index'])
-        router.post('transactions', [TransactionsController, 'store'])
+        router.get('tenant/transactions', [TransactionsController, 'index'])
+        router.post('tenant/transactions', [TransactionsController, 'store'])
       })
       .use(middleware.tenanted())
   })

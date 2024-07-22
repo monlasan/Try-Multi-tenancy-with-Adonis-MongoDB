@@ -3,15 +3,15 @@ import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 import env from '#start/env'
 import { getModelByTenant } from '#database/index'
-import { UserSchema } from '#database/schemas/user_schema'
+import { MemberSchema } from '#database/schemas/member_schema'
 import UnAuthorizedException from '#exceptions/un_authorized_exception'
 import { currentTenant } from '../../lib/utils.js'
 
 export default class AuthMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
     const tenant = currentTenant(ctx.request)
-    const User = getModelByTenant(tenant, 'user', UserSchema)
-    // const User = getModelByTenant(ctx.subdomains.tenant, 'user', UserSchema)
+    const Member = getModelByTenant(tenant, 'member', MemberSchema)
+    // const Member = getModelByTenant(ctx.subdomains.tenant, 'member', MemberSchema)
     const token =
       ctx.request.cookie('accessToken') ||
       ctx.request.header('authorization')?.replace('Bearer ', '')
@@ -22,12 +22,12 @@ export default class AuthMiddleware {
 
     try {
       const decodedToken: any = jwt.verify(token, String(env.get('ACCESS_TOKEN_SECRET')))
-      const user = await User.findById(decodedToken.id)
+      const member = await Member.findById(decodedToken.id)
 
-      if (!user) {
+      if (!member) {
         throw new UnAuthorizedException('You are not authorized')
       }
-      ctx.request.request.headers['user'] = user
+      ctx.request.request.headers['member'] = member
     } catch (err) {
       throw new UnAuthorizedException('You are not authorized')
     }
