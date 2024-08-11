@@ -14,7 +14,7 @@ import hash from '@adonisjs/core/services/hash'
 import type { HttpContext } from '@adonisjs/core/http'
 import { generateAccessToken, generateRefreshToken } from '../utils/helpers.js'
 import BadCredentialsException from '#exceptions/bad_credentials_exception'
-import { currentTenant } from '../../lib/utils.js'
+import { currentTenant, excludeFrom } from '../../lib/utils.js'
 import { FIFTEEN_MINUTES_FROM_NOW, THIRTY_DAYS_FROM_NOW } from '../utils/constants.js'
 
 const generateAccessAndRefreshTokens = async (tenant: string, memberId: any) => {
@@ -50,7 +50,7 @@ export default class AuthController {
     // Check if member exists
     const member = await Member.findOne({
       $or: [{ phone_number }, { email }],
-    })
+    }).select('-refresh_token -email_verification_token -email_verification_expiry -transactions')
     if (!member) {
       response.abort({ message: "This member doesn't exist" }, 403)
     }
@@ -81,6 +81,9 @@ export default class AuthController {
     // Generate access and refresh token
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(tenant, member._id)
 
+    // DTO
+    const member_dto = excludeFrom(member, ['password', 'login_type', 'is_email_verified'])
+
     response
       .status(200)
       .cookie('accessToken', accessToken, {
@@ -95,6 +98,21 @@ export default class AuthController {
         sameSite: 'none',
         expires: THIRTY_DAYS_FROM_NOW,
       })
-      .send({ message: '✅ Members authenticated successfully', member, accessToken })
+      // TODO: Add a DTO to return the member and accessToken
+      .send({ message: '✅ Authenticated successfully', member: member_dto, accessToken })
+  }
+  async logout({ response }: HttpContext) {
+    response
+      .clearCookie('accessToken', {
+        httpOnly: false,
+        secure: true,
+        sameSite: 'none',
+      })
+      .clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+      })
+      .send({ message: '🟢 LOGGED OUT!' })
   }
 }

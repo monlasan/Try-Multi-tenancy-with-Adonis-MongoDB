@@ -19,6 +19,7 @@ import { MemberSchema } from '#database/schemas/member_schema'
 import type { HttpContext } from '@adonisjs/core/http'
 import hash from '@adonisjs/core/services/hash'
 import { generateTemporaryToken } from '../utils/helpers.js'
+import { PROGRAMS } from '../utils/constants.js'
 
 const createTenant = async (org_name: string, tenant_id: string) => {
   // TODO: Validate and sanitize tenant name
@@ -28,18 +29,37 @@ const createTenant = async (org_name: string, tenant_id: string) => {
     if (existingTenant) {
       throw new Error('Tenant already exists')
     }
+    const date = new Date()
     const tenant = await Tenant.create({
       name: org_name,
       database_name: tenant_id,
-      programs: [
-        {
-          name: 'BASE_PROGRAM',
-          active: true,
-          basic_program: {
-            added_points: 10,
-          },
-        },
-      ],
+      // programs: [
+      //   {
+      //     name: PROGRAMS.BASIC_PROGRAM,
+      //     active: true,
+      //     basic_program: {
+      //       added_points: 10,
+      //     },
+      //     specific_program: {
+      //       dates: [],
+      //     },
+      //     referral_program: {
+      //       added_points: 0,
+      //     },
+      //     batch_program: {
+      //       amount: 0,
+      //       added_points: 0,
+      //     },
+      //     weekend_program: {
+      //       added_points: 0,
+      //     },
+      //     periodic_program: {
+      //       from: date,
+      //       to: date,
+      //       added_points: 0,
+      //     },
+      //   },
+      // ],
     })
     return tenant
   } catch (error) {
@@ -161,9 +181,11 @@ export default class TenantsController {
     const tenants = await Tenant.find({})
     return tenants
   }
-  async show({ params }: HttpContext) {
+  async show({ params, response }: HttpContext) {
     const Tenant = getModelByTenant('landlord', 'tenant', TenantSchema)
-    const tenant = await Tenant.findOne({ database_name: params.tenant })
-    return { tenant }
+    const tenant = await Tenant.findOne({ database_name: params.tenant }).select(
+      '-database_name -members -customers -transactions -programs'
+    )
+    return response.status(200).send({ tenant })
   }
 }

@@ -15,3 +15,22 @@ export function normalizeOrganizationName(name: string) {
     .replace(/\s+/g, '-') // Replace spaces with hyphens
     .replace(/-+/g, '-') // Replace multiple hyphens with a single hyphen
 }
+
+export function excludeFrom(payload: any, excludingElementArray: string[], type = 'object'): any {
+  let data = JSON.parse(JSON.stringify(payload))
+  if (type === 'object') {
+    excludingElementArray.forEach((item) => {
+      delete data[item]
+    })
+    return data
+  }
+  if (type === 'array') {
+    data.forEach((item: any) => {
+      excludingElementArray.forEach((element) => {
+        delete item[element]
+      })
+    })
+    return data
+  }
+  return data
+}

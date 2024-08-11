@@ -11,10 +11,10 @@ export default class AuthMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
     const tenant = currentTenant(ctx.request)
     const Member = getModelByTenant(tenant, 'member', MemberSchema)
-    // const Member = getModelByTenant(ctx.subdomains.tenant, 'member', MemberSchema)
     const token =
       ctx.request.cookie('accessToken') ||
       ctx.request.header('authorization')?.replace('Bearer ', '')
+    // const token = null
 
     if (!token) {
       throw new UnAuthorizedException('You are not authorized')

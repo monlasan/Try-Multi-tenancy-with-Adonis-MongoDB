@@ -24,7 +24,6 @@ export function generateAccessToken(user: any) {
       full_name: user.full_name,
       phone_number: user.phone_number,
       role: user.role,
-      organization: user.organization,
     },
     String(env.get('ACCESS_TOKEN_SECRET')),
     { expiresIn: env.get('ACCESS_TOKEN_EXPIRY') }

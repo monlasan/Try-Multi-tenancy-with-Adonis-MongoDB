@@ -20,14 +20,43 @@ export const TenantSchema = new mongoose.Schema(
       base_points: { type: Number, default: 10 },
     },
     programs: {
-      type: [ProgramSchema],
-      validate: {
-        validator: function (v: any[]) {
-          return v && v.length > 0
-        },
-        message: 'An organization must have at least one program.',
+      basic_program: {
+        active: true,
+        added_points: 10,
+      },
+      specific_program: {
+        active: false,
+        dates: [],
+      },
+      referral_program: {
+        active: false,
+        added_points: 0,
+      },
+      batch_program: {
+        active: false,
+        amount: 0,
+        added_points: 0,
+      },
+      weekend_program: {
+        active: false,
+        added_points: 0,
+      },
+      periodic_program: {
+        active: false,
+        from: Date,
+        to: Date,
+        added_points: 0,
       },
     },
+    // programs: {
+    //   type: [ProgramSchema],
+    //   validate: {
+    //     validator: function (v: any[]) {
+    //       return v && v.length > 0
+    //     },
+    //     message: 'An organization must have at least one program.',
+    //   },
+    // },
     subscription_plan: {
       type: String,
       enum: ['free', 'pro', 'enterprise'],
