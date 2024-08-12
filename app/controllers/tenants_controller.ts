@@ -33,33 +33,36 @@ const createTenant = async (org_name: string, tenant_id: string) => {
     const tenant = await Tenant.create({
       name: org_name,
       database_name: tenant_id,
-      // programs: [
-      //   {
-      //     name: PROGRAMS.BASIC_PROGRAM,
-      //     active: true,
-      //     basic_program: {
-      //       added_points: 10,
-      //     },
-      //     specific_program: {
-      //       dates: [],
-      //     },
-      //     referral_program: {
-      //       added_points: 0,
-      //     },
-      //     batch_program: {
-      //       amount: 0,
-      //       added_points: 0,
-      //     },
-      //     weekend_program: {
-      //       added_points: 0,
-      //     },
-      //     periodic_program: {
-      //       from: date,
-      //       to: date,
-      //       added_points: 0,
-      //     },
-      //   },
-      // ],
+      programs: {
+        basic_program: {
+          active: true,
+          added_points: 10,
+        },
+        specific_program: {
+          active: false,
+          added_points: 0,
+          dates: [],
+        },
+        referral_program: {
+          active: false,
+          added_points: 0,
+        },
+        batch_program: {
+          active: false,
+          added_points: 0,
+          amount: 0,
+        },
+        weekend_program: {
+          active: false,
+          added_points: 0,
+        },
+        periodic_program: {
+          active: false,
+          added_points: 0,
+          from: date,
+          to: date,
+        },
+      },
     })
     return tenant
   } catch (error) {

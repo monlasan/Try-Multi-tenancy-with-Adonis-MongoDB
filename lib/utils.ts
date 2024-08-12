@@ -34,3 +34,32 @@ export function excludeFrom(payload: any, excludingElementArray: string[], type 
   }
   return data
 }
+
+export function addProgramParams(programName: string, params: any) {
+  let param: Partial<any> = {
+    added_points: params.added_points,
+    active: params.active,
+  }
+
+  switch (programName) {
+    case 'SPECIFIC_PROGRAM':
+      param.dates = params.dates
+      break
+    case 'BATCH_PROGRAM':
+      param.amount = params.amount
+      break
+    case 'PERIODIC_PROGRAM':
+      param.from = params.from
+      param.to = params.to
+      break
+    case 'BASIC_PROGRAM':
+    case 'WEEKEND_PROGRAM':
+    case 'REFERRAL_PROGRAM':
+      break
+    default:
+      // Handle unknown programName if necessary
+      break
+  }
+
+  return param
+}

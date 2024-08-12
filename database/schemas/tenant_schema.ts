@@ -21,31 +21,32 @@ export const TenantSchema = new mongoose.Schema(
     },
     programs: {
       basic_program: {
-        active: true,
-        added_points: 10,
+        active: Boolean,
+        added_points: Number,
       },
       specific_program: {
-        active: false,
-        dates: [],
+        active: Boolean,
+        added_points: Number,
+        dates: [Date],
       },
       referral_program: {
-        active: false,
-        added_points: 0,
+        active: Boolean,
+        added_points: Number,
       },
       batch_program: {
-        active: false,
-        amount: 0,
-        added_points: 0,
+        active: Boolean,
+        added_points: Number,
+        amount: Number,
       },
       weekend_program: {
-        active: false,
-        added_points: 0,
+        active: Boolean,
+        added_points: Number,
       },
       periodic_program: {
-        active: false,
+        active: Boolean,
+        added_points: Number,
         from: Date,
         to: Date,
-        added_points: 0,
       },
     },
     // programs: {
