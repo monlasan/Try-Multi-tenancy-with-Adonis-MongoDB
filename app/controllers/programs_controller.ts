@@ -16,8 +16,8 @@ export default class ProgramsController {
     let programs = request.body()
 
     const tenant = currentTenant(request)
-    const MTenant = getModelByTenant('landlord', 'tenant', TenantSchema)
-    const res = await MTenant.findOne({
+    const Tenant = getModelByTenant('landlord', 'tenant', TenantSchema)
+    const res = await Tenant.findOne({
       database_name: tenant,
     })
 
@@ -27,6 +27,31 @@ export default class ProgramsController {
     })
     res.programs = updatedPrograms
     await res.save()
+
+    return response.status(200).send({ data: res.programs })
+  }
+  async updateOne({ request, response }: HttpContext) {
+    const payload = request.body()
+    const tenant = currentTenant(request)
+    const Tenant = getModelByTenant('landlord', 'tenant', TenantSchema)
+    const res = await Tenant.findOne({
+      database_name: tenant,
+    })
+
+    res.programs[payload.name.toLowerCase()].added_points = payload.params.added_points
+
+    if (payload.name === 'PERIODIC_PROGRAM') {
+      res.programs[payload.name.toLowerCase()].from = payload.params.from
+      res.programs[payload.name.toLowerCase()].to = payload.params.to
+    }
+    if (payload.name === 'SPECIFIC_PROGRAM') {
+      res.programs[payload.name.toLowerCase()].dates = payload.params.dates
+    }
+    if (payload.name === 'BATCH_PROGRAM') {
+      res.programs[payload.name.toLowerCase()].amount = payload.params.amount
+    }
+
+    res.save()
 
     return response.status(200).send({ data: res.programs })
   }

@@ -65,6 +65,7 @@ router
             // Programs
             router.get('tenant/programs', [ProgramsController, 'index'])
             router.put('tenant/programs/save', [ProgramsController, 'save'])
+            router.put('tenant/programs/update-one', [ProgramsController, 'updateOne'])
 
             // Members
             router.get('tenant/members', [MembersController, 'index'])

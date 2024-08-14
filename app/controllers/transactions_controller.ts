@@ -8,7 +8,7 @@ import { TenantSchema } from '#database/schemas/tenant_schema'
 
 export default class TransactionsController {
   async index({ request, response }: HttpContext) {
-    console.log('request.body', request.body())
+    // console.log('request.body', request.body())
     // await 3 second here
     await new Promise((resolve) => setTimeout(resolve, 1000))
     const tenant = currentTenant(request)
