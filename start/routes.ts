@@ -71,15 +71,17 @@ router
             router.get('tenant/members', [MembersController, 'index'])
             router.post('tenant/members', [MembersController, 'store'])
             router.get('tenant/members/:id', [MembersController, 'show'])
+            router.post('tenant/members/search', [MembersController, 'search'])
+            router.post('tenant/members/invites', [MembersController, 'invites'])
 
             // Customers
             router.get('tenant/customers', [CustomersController, 'index_tenant'])
             router.get('tenant/customers/:id', [CustomersController, 'show_tenant'])
 
             // Transactions
-            // router.get('tenant/transactions', [TransactionsController, 'index'])
+            router.get('tenant/transactions', [TransactionsController, 'index'])
             router.post('tenant/transactions', [TransactionsController, 'store'])
-            router.post('tenant/transactions/search', [TransactionsController, 'index'])
+            router.post('tenant/transactions/search', [TransactionsController, 'search'])
           })
           .use(middleware.auth())
       })

@@ -8,14 +8,32 @@ import { TenantSchema } from '#database/schemas/tenant_schema'
 
 export default class TransactionsController {
   async index({ request, response }: HttpContext) {
-    // console.log('request.body', request.body())
-    // await 3 second here
-    await new Promise((resolve) => setTimeout(resolve, 1000))
     const tenant = currentTenant(request)
     const Transaction = getModelByTenant(tenant, 'transaction', TransactionSchema)
-    const transactions = await Transaction.find()
+    const transactions = await Transaction.find({})
+
     response.status(200).send({
       data: transactions,
+    })
+  }
+  async search({ request, response }: HttpContext) {
+    const limit = request.body().limit
+    const page = request.body().page
+    const offset = (page - 1) * limit
+
+    const tenant = currentTenant(request)
+    const Transaction = getModelByTenant(tenant, 'transaction', TransactionSchema)
+    const transactions = await Transaction.find({}).skip(offset).limit(limit)
+    const total = await Transaction.countDocuments()
+
+    response.status(200).send({
+      data: transactions,
+      meta: {
+        page: page,
+        limit: limit,
+        totalDocuments: transactions.length,
+        total,
+      },
     })
   }
   async store({ request }: HttpContext) {
